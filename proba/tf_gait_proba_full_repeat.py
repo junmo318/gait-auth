@@ -4,6 +4,11 @@
 @author: Benjamin Zhao
 """
 
+
+"""
+Main file for running the random input attack on all the classifiers
+"""
+
 # Data Holders
 import numpy as np
 from sklearn import svm
@@ -51,32 +56,35 @@ class Classifier:
 # Main function
 # Define this a one iteration loop
 def main_run(selection):
+    """
+    Main function for running attack
+    """
     resample_users = True
 
     # Create a population statistic for the data
     if resample_users:
         sensors_loc = "./../uci_har_full_dataset.csv"
-
         n_feat = 562
 
-        a = SensorUserPopulation(sensors_loc, n_feat)
+        #from user_sensors.py
+        a = SensorUserPopulation(sensors_loc, n_feat)  # create class of all different users
 
-        a.normalize_data()
-        a.split_user_data(0.3)
+        a.normalize_data()                             # normalize data of from 0 to 1
+        a.split_user_data(0.3)                         # split data 0.3 testing and 0.7 testing
 
         clf_titles = ['RNDF',
                       'LINEAR SVM',
                       'RBF SVM',
                       'ONECLASS RBF SVM',
                       'DNN'
-                      ]
+                      ]                                 # array of different classifier names
 
         clf_models = [RandomForestClassifier,
                       svm.SVC,
                       svm.SVC,
                       svm.OneClassSVM,
                       DNNClassifier
-                      ]
+                      ]                                 # classifier moderls
 
         clf_params = [{'n_jobs': -1, 'n_estimators': 10},
                       {'kernel': 'linear', 'C': 1E4, 'probability': True},
@@ -84,17 +92,21 @@ def main_run(selection):
                       {'kernel': 'rbf', 'nu': 0.1, 'gamma': 0.1, 'probability': True},
                       {'input_shape': (1, n_feat), 'num_epochs': 500,
                        'temp_dir': None},
-                      ]
+                      ]                                  # array of dictionaries
+                                                         # key: parameter, value: data
 
+        # selection = input chosen
         clf_param = clf_params[selection]
         clf_model = clf_models[selection]
         clf_title = clf_titles[selection]
 
-        cover_data = np.random.rand(1000000, n_feat)
+        cover_data = np.random.rand(1000000, n_feat)    # create a million random input of features
 
+        # create scale from o to 1, increase by step amount
         step = 0.01
         scale = np.arange(0, 1+step, step)
 
+    # the FPR, TPR, AR for each user
     FPR_holder = []
     TPR_holder = []
     AR_holder = []
@@ -106,11 +118,14 @@ def main_run(selection):
         arr = np.array(a)[:, 1]
         return [np.sum(arr > t)/arr.size for t in scale]
 
+    # for each of the users (a dictionary)
+    # key: subject_id, value: UserData class
     for u in sorted(a.users.keys()):
         print(u)
+        # traning and validation data
         target_data, other_data = a.get_train_sets(u, concatenate=False)
-        target_test_data, other_test_data = a.get_test_sets(u,
-                                                            concatenate=False)
+        # test data
+        target_test_data, other_test_data = a.get_test_sets(u, concatenate=False)
 
         if 'DNN' in clf_title:
             try:
@@ -136,19 +151,20 @@ def main_run(selection):
                 pass
 
         else:
-            clf = Classifier(clf_model, clf_param)
-            clf.train_classifier([target_data, other_data])
+            clf = Classifier(clf_model, clf_param)              # create classifier object
+            clf.train_classifier([target_data, other_data])     # train on positive user (1 person) and negative user (rest of database)
             T = clf.classifier.predict_proba(target_test_data)
             F = clf.classifier.predict_proba(other_test_data)
             Z = clf.classifier.predict_proba(cover_data)
 
-            TPR = binary_threshold_counter(T, scale)
+            TPR = binary_threshold_counter(T, scale)            # calculate TPR, FPR and AR for each threshold from 0 to 1
             FPR = binary_threshold_counter(F, scale)
             AR = binary_threshold_counter(Z, scale)
             AR_holder.append(AR)
             TPR_holder.append(TPR)
             FPR_holder.append(FPR)
             del clf
+        System.out.println(TPR_holder);
 
     return (TPR_holder, FPR_holder, AR_holder)
 

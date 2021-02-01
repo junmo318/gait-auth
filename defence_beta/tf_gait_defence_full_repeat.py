@@ -4,6 +4,12 @@
 @author: Benjamin Zhao
 """
 
+
+"""
+Main file for running the defense portion, where noise is generated and inserted,
+then tested again.
+"""
+
 # Data Holders
 import numpy as np
 from sklearn import svm
@@ -101,23 +107,32 @@ def main_run(selection, ratio):
     TPR_holder = []
     AR_holder = []
 
+
     # create temp dir
     tmp_path = os.environ['LOCALDIR']
     assert os.path.isdir(tmp_path)
     path = os.path.join(tmp_path, "models", "gait")
     mkdir_p(path)
     run_tmp_dir = tempfile.mkdtemp(dir=path)
+    ### change below for successful run, may or may not change results?
+    # run_tmp_dir = tempfile.mkdtemp(dir="/tmp/gait/models/")
+
 
     def binary_threshold_counter(a, scale):
         arr = np.array(a)[:, 1]
         return [np.sum(arr > t)/arr.size for t in scale]
 
+    """
+    Same as the main attack (tf_gait_proba_full_repeat.py)
+    """
     for u in sorted(a.users.keys()):
         print(u)
         target_data, other_data = a.get_train_sets(u, concatenate=False)
         target_test_data, other_test_data = a.get_test_sets(u,
                                                             concatenate=False)
 
+        ### from defend_gait.py
+        # adjust ratio in order to change type of noise generated
         target_data, other_data = generate_protection_noise(target_data, other_data,
                                                             ratio)
 
@@ -190,7 +205,7 @@ if __name__ == "__main__":
                   'oneclass',
                   'dnn'
                   ]
-
+    ratio = 0.2;
     if len(sys.argv) < 2:
         selection = 0
     elif len(sys.argv) < 3:

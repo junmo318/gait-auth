@@ -26,6 +26,7 @@ def sample_clipped(center, sd, dim, n, low=0.0, upp=1.0):
 
 
 def generate_protection_noise(target_data, other_data, std_ratio):
+    # get the average value of each feature
     feat_mean = np.mean(target_data, axis=0)
 
     alphas = abs(feat_mean - 0.5) + 0.5
