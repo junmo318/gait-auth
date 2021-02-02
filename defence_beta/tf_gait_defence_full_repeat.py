@@ -109,13 +109,13 @@ def main_run(selection, ratio):
 
 
     # create temp dir
-    tmp_path = os.environ['LOCALDIR']
-    assert os.path.isdir(tmp_path)
-    path = os.path.join(tmp_path, "models", "gait")
-    mkdir_p(path)
-    run_tmp_dir = tempfile.mkdtemp(dir=path)
+    # tmp_path = os.environ['LOCALDIR']
+    # assert os.path.isdir(tmp_path)
+    # path = os.path.join(tmp_path, "models", "gait")
+    # mkdir_p(path)
+    # run_tmp_dir = tempfile.mkdtemp(dir=path)
     ### change below for successful run, may or may not change results?
-    # run_tmp_dir = tempfile.mkdtemp(dir="/tmp/gait/models/")
+    run_tmp_dir = tempfile.mkdtemp(dir="/tmp/gait/models/")
 
 
     def binary_threshold_counter(a, scale):
@@ -207,7 +207,7 @@ if __name__ == "__main__":
                   ]
     ratio = 0.2;
     if len(sys.argv) < 2:
-        selection = 0
+        selection = 3
     elif len(sys.argv) < 3:
         selection = int(sys.argv[1])
         ratio = 0.3

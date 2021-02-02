@@ -164,7 +164,7 @@ def main_run(selection):
             TPR_holder.append(TPR)
             FPR_holder.append(FPR)
             del clf
-        System.out.println(TPR_holder);
+        print(len(TPR_holder))
 
     return (TPR_holder, FPR_holder, AR_holder)
 
@@ -199,7 +199,7 @@ if __name__ == "__main__":
                   ]
 
     if len(sys.argv) < 2:
-        selection = 0
+        selection = 1
     else:
         selection = int(sys.argv[1])
 
