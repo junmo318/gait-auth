@@ -207,7 +207,7 @@ if __name__ == "__main__":
                   ]
     ratio = 0.2;
     if len(sys.argv) < 2:
-        selection = 3
+        selection = 4
     elif len(sys.argv) < 3:
         selection = int(sys.argv[1])
         ratio = 0.3

@@ -33,7 +33,7 @@ class DNNClassifier:
         )
 
         # Define the training inputs
-        train_input_fn = tf.estimator.inputs.numpy_input_fn(
+        train_input_fn = tf.compat.v1.estimator.inputs.numpy_input_fn(
             x={"x": data},
             y=label,
             num_epochs=None,
@@ -46,7 +46,7 @@ class DNNClassifier:
     def predict(self, data):
 
         # Define the test inputs
-        test_input_fn = tf.estimator.inputs.numpy_input_fn(
+        test_input_fn = tf.compat.v1.estimator.inputs.numpy_input_fn(
             x={"x": data},
             num_epochs=1,
             shuffle=False
@@ -60,7 +60,7 @@ class DNNClassifier:
     def predict_proba(self, data):
 
         # Define the test inputs
-        test_input_fn = tf.estimator.inputs.numpy_input_fn(
+        test_input_fn = tf.compat.v1.estimator.inputs.numpy_input_fn(
             x={"x": data},
             num_epochs=1,
             shuffle=False
@@ -78,7 +78,7 @@ class DNNClassifier:
         test_label = np.concatenate([np.ones(n0), np.zeros(n1)])
 
         # Define the test inputs
-        test_input_fn = tf.estimator.inputs.numpy_input_fn(
+        test_input_fn = tf.tf.compat.v1.estimator.inputs.numpy_input_fn(
             x={"x": test_data},
             y=test_label,
             num_epochs=1,
