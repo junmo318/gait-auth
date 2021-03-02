@@ -29,14 +29,28 @@ def generate_protection_noise(target_data, other_data, std_ratio):
     # get the average value of each feature
     feat_mean = np.mean(target_data, axis=0)
 
-    alphas = abs(feat_mean - 0.5) + 0.5
-    betas = np.array([0.5]*len(alphas))
+    alphas = abs(feat_mean - std_ratio) + std_ratio
+    betas = np.array([std_ratio]*len(alphas))
 
     # add beta noise
     gen_data = np.random.beta(alphas, betas,
                               (len(target_data), len(feat_mean)))
     gen_data = np.abs((-1*np.round(feat_mean)) + gen_data)
     noise_other_data = np.concatenate([other_data, gen_data], axis=0)
+
+
+    return target_data, len(gen_data)
+
+def only_noise(target_data, other_data, std_ratio):
+    feat_mean = np.mean(target_data, axis=0)
+
+    alphas = abs(feat_mean - std_ratio) + std_ratio
+    betas = np.array([std_ratio]*len(alphas))
+
+    # add beta noise
+    gen_data = np.random.beta(alphas, betas,
+                              (len(target_data), len(feat_mean)))
+    gen_data = np.abs((-1*np.round(feat_mean)) + gen_data)
 
     return target_data, noise_other_data
 

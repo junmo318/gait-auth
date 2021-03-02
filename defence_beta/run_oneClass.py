@@ -1,25 +1,5 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-@author: Benjamin Zhao
-"""
-
-
-"""
-Main file for running the defense portion, where noise is generated and inserted,
-then tested again.
-"""
-
-# Data Holders
 import numpy as np
 from sklearn import svm
-from sklearn.ensemble import RandomForestClassifier
-
-import os, sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from tf_nn_classifier import DNNClassifier
-from user_sensors import SensorUserPopulation
-from defend_gait import generate_protection_noise
 
 import os
 import sys
@@ -27,10 +7,8 @@ import errno
 import shutil
 import tempfile
 
-
 class generic():
     pass
-
 
 class Classifier:
     def __init__(self, clf_model, clf_param):
@@ -55,9 +33,6 @@ class Classifier:
         result = self.classifier.predict(test_data)
         self.clfs_result.append((result, test_label))
 
-
-# Main function
-# Define this a one iteration loop
 def main_run(selection, ratio):
     resample_users = True
 
@@ -72,26 +47,16 @@ def main_run(selection, ratio):
         a.normalize_data()
         a.split_user_data(0.3)
 
-        clf_titles = ['RNDF',
-                      'LINEAR SVM',
-                      'RBF SVM',
-                      'ONECLASS RBF SVM',
-                      'DNN'
+        clf_titles =  [
+                      'ONECLASS SVM'
                       ]
 
-        clf_models = [RandomForestClassifier,
-                      svm.SVC,
-                      svm.SVC,
-                      svm.OneClassSVM,
-                      DNNClassifier
+        clf_models = [
+                        svm.OneClassSVM
                       ]
 
-        clf_params = [{'n_jobs': -1, 'n_estimators': 100},
-                      {'kernel': 'linear', 'C': 1E4, 'probability': True},
-                      {'kernel': 'rbf', 'C': 1E4, 'probability': True},
-                      {'kernel': 'rbf', 'nu': 0.1, 'gamma': 0.1, 'probability': True},
-                      {'input_shape': (1, n_feat), 'num_epochs': 500,
-                       'temp_dir': None},
+        clf_params = [
+                      {'kernel': 'rbf', 'nu': outliers_fractions, 'gamma': 0.1, 'probability': True}
                       ]
 
         clf_param = clf_params[selection]
@@ -137,46 +102,22 @@ def main_run(selection, ratio):
         """
         noise generated from postive class
         """
-        target_data, other_data = generate_protection_noise(target_data, other_data,
-                                                            ratio)
+        target_data, other_data = only_noise(target_data, ratio)
 
-        if 'DNN' in clf_title:
-            try:
-                tmp_dir = tempfile.mkdtemp(dir=run_tmp_dir)  # create dir
-                clf_param['temp_dir'] = tmp_dir
-                clf = DNNClassifier(**clf_param)
-                clf.train_classifier([target_data, other_data])
-                T = clf.predict_proba(target_test_data)
-                F = clf.predict_proba(other_test_data)
-                Z = clf.predict_proba(cover_data)
 
-                print(T)
+        clf = Classifier(clf_model, clf_param)
+        clf.train_classifier([target_data, other_data])
+        T = clf.classifier.predict_proba(target_test_data)
+        F = clf.classifier.predict_proba(other_test_data)
+        Z = clf.classifier.predict_proba(cover_data)
 
-                TPR = binary_threshold_counter(T, scale)
-                FPR = binary_threshold_counter(F, scale)
-                AR = binary_threshold_counter(Z, scale)
-                AR_holder.append(AR)
-                TPR_holder.append(TPR)
-                FPR_holder.append(FPR)
-
-                del clf
-            finally:
-                pass
-
-        else:
-            clf = Classifier(clf_model, clf_param)
-            clf.train_classifier([target_data, other_data])
-            T = clf.classifier.predict_proba(target_test_data)
-            F = clf.classifier.predict_proba(other_test_data)
-            Z = clf.classifier.predict_proba(cover_data)
-
-            TPR = binary_threshold_counter(T, scale)
-            FPR = binary_threshold_counter(F, scale)
-            AR = binary_threshold_counter(Z, scale)
-            AR_holder.append(AR)
-            TPR_holder.append(TPR)
-            FPR_holder.append(FPR)
-            del clf
+        TPR = binary_threshold_counter(T, scale)
+        FPR = binary_threshold_counter(F, scale)
+        AR = binary_threshold_counter(Z, scale)
+        AR_holder.append(AR)
+        TPR_holder.append(TPR)
+        FPR_holder.append(FPR)
+        del clf
 
     return (TPR_holder, FPR_holder, AR_holder)
 
@@ -203,21 +144,11 @@ def rmdir_p(path):
 if __name__ == "__main__":
     import pickle
 
-    clf_titles = ['rndf',
-                  'linsvm',
-                  'rbfsvm',
-                  'oneclass',
-                  'dnn'
+    clf_titles = [
+                  'oneclass'
                   ]
-    ratio = 0.2;
-    if len(sys.argv) < 2:
-        selection = 1
-    elif len(sys.argv) < 3:
-        selection = int(sys.argv[1])
-        ratio = 0.3
-    else:
-        selection = int(sys.argv[1])
-        ratio = float(sys.argv[2])
+    ratio = 0.5;
+
 
     results_holder = []
     for _ in range(1):
@@ -225,7 +156,7 @@ if __name__ == "__main__":
 
         mkdir_p("./{}_probaresults/".format(clf_titles[selection]))
 
-        results_holder.append(main_run(selection, ratio))
+        results_holder.append(main_run(0, ratio))
     tmp_file = tempfile.mkstemp(suffix=".pickle",
                                 dir="./{}_probaresults/".format(
                                         clf_titles[selection]))

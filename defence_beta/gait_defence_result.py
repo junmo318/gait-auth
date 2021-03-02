@@ -15,8 +15,11 @@ verify_data = True
 
 data = 'user_defence_results'
 
-vary_dir = {0.00: join('./', data),
+vary_dir = {0.00: join(data),
             }
+
+# vary_dir = {0.00:  data,
+#             }
 
 arches = {'linsvm': 'linsvm_probaresults',
           'rbfsvm': 'rbfsvm_probaresults',
@@ -26,12 +29,16 @@ arches = {'linsvm': 'linsvm_probaresults',
 
 data_holder = {}
 
+print(vary_dir)
+
 for vary_key, data_path in vary_dir.items():
     for arch, arch_path in arches.items():
         arch_holder = data_holder.get(arch, {})
         run_path = join(data_path, arch_path)
+        # print(data_path, arch)
+
         onlyfiles = [join(run_path, f) for f in listdir(run_path) if
-                     isfile(join(run_path, f)) & f.endswith('.pickle')]
+                    isfile(join(run_path, f)) & f.endswith('.pickle')]
 
         # Extract data from dirrectory
         data_arr = []
